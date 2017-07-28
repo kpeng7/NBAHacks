@@ -10,25 +10,11 @@ class Team():
     opponents = {}
     points_scored = 0
     points_allowed = 0
+    eliminated = None
     def __init__(self, name, opponents_list):
         self.name = name
         for opponent in opponents_list:
             self.opponents[opponent] = [0, 0] #FORMAT = [W, L]
-
-    def getName(self):
-        return self.name
-    
-    def setConferenceRank(self, rank):
-        self.conference_rank = rank
-        
-    def getConferenceRank(self):
-        return self.conference_rank
-    
-    def setDivisionRank(self, rank):
-        self.division_rank = rank
-    
-    def getDivisionRank(self):
-        return self.division_rank
     
     def addGame(self, opponent, outcome):
         self.points_scored += outcome[0]
