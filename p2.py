@@ -1,6 +1,8 @@
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = {}
 
+#once one team plays more than 41 games 
+
 class Team():
     name = ""
     conference_rank = 0     #set in conference object
