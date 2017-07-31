@@ -9,6 +9,10 @@ class Team():
     games_played = 0
     division = ""
     conference = ""
+    division_games_won = 0
+    division_games_played = 0
+    conference_games_won = 0
+    conference_games_played = 0
     opponents = {}          #dict of opponents names (str): [number of wins, number of losses]
     points_scored = 0
     points_allowed = 0
@@ -59,6 +63,9 @@ class Group():
     #returns the rank of a given team in the division
     def getRank(self, team):
         pass
+    
+    def getTeamNames(self):
+        return team_names
 
 class Division(Group):
     
