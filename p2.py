@@ -79,7 +79,40 @@ class Division(Group):
 class Conference(Group):
     pass
 
+def generateTeams():
+    #returns dictionary of team name : team object
+    pass
+
+def generateDivisions():
+    #returns dictionary of division name : division object
+    pass
+
+def sameConference(team1, team2):
+    return team1.conference == team2.conference
+
+def sameDivision(team1, team2):
+    return team1.division == team2.division
+    
+def updateTeam((winning_team, losing_team, score), teams, divisions, conferences):
+    team1 = teams[winning_team]
+    team2 = teams[losing_team]
+    team1.addGame(losing_team, score)
+    team2.addGame(winning_team, [score[1], score[0]])
+    if sameConference(team1, team2):
+        conferences[team1.conference].addGame(team1, team2, score)
+    if sameDivision(team1, team2):
+        divisions[team1.division].addGame(team1, team2, score)
+
+        
+    
+
 def main():
+    teams = generateTeams()
+    divisions = generateDivisions()
+    for date in GAME_DATA.keys():
+        for game in GAME_DATA[date]:
+            updateTeam(game, teams)
+            
     # team = Team("bobcats", ["lol"])
     # print team.getName()
     # print team.opponents
