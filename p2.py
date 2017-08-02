@@ -93,7 +93,6 @@ class Group():
 
     #ranks teams within the Group
     def rankTeams(self):
-        """ADD CODE HERE"""
         pass
 
     #updates Group to get the new group leaders
@@ -113,6 +112,13 @@ class Division(Group):
     #constructor for division object
     def __init__(self, name, teams):
         Group.__init__(self, name, teams)
+        
+    def rankTeams(self):
+        ranked_dict = {}
+        for team in self.teams:
+            ranked_dict[team.name] = float(team.division_games_won)/float(team.division_games_played)
+        ranked = sorted(ranked_dict.keys())
+        self.leaders.
 
 
 class Conference(Group):
