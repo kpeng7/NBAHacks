@@ -1,7 +1,31 @@
+import unittest
+
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = {}
 
 #once one team plays more than 41 games 
+
+class Tests(unittest.TestCase):
+    def testAddGame(self):
+        team1 = Team("name", "division", "conference", ["name2"])
+        team2 = Team("name2", "division", "conference", ["name"])
+        team1.addGame(team2, (100, 50))
+        self.assertEqual(team1.games_won, 1)
+        self.assertEqual(team1.games_played, 1)
+        self.assertEqual(team1.division_games_won, 1)
+        self.assertEqual(team1.division_games_played, 1)
+        self.assertEqual(team1.conference_games_won, 1)
+        self.assertEqual(team1.conference_games_played, 1)
+        self.assertEqual(team1.opponents["name2"], [1, 0])
+        self.assertEqual(team1.points_scored, 100)
+        self.assertEqual(team1.points_allowed, 50)
+        
+    def testSameConference(self):
+        team1 = Team("name", "division", "conference", [])
+        team2 = Team(None, None, "conference", [])
+        team3 = Team("", "", "", [])
+        self.assertEqual(sameConference(team1, team2), True)
+        self.assertEqual(sameConference(team1, team3), False)
 
 class Team():
     name = ""
@@ -30,23 +54,38 @@ class Team():
 
     #adds a game played to the team
     def addGame(self, opponent, outcome):
+        won = False
+        if outcome[0] > outcome[1]:
+            won = True
         self.points_scored += outcome[0]
         self.points_allowed += outcome[1]
-        if outcome[0] > outcome[1]:
+        if won:
             self.games_won += 1
-            self.opponents[opponent][0] += 1
+            self.opponents[opponent.name][0] += 1
         else:
-            self.opponents[opponent][1] += 1
+            self.opponents[opponent.name][1] += 1
+        if self.division == opponent.division:
+            self.division_games_played += 1
+            if won:
+                self.division_games_won += 1
+        if self.conference == opponent.conference:
+            self.conference_games_played += 1
+            if won:
+                self.conference_games_won += 1
         self.games_played += 1
 
 class Group():
     name = ""
     teams = []
+    team_names = []
+    group_leaders = []
 
     #constructor for Group object
     def __init__(self, name, teams):
         self.name = name
         self.teams = teams
+        for team in teams:
+            self.team_names.append(team.name)
 
     #adds a team to the Group
     def addTeam(self, team):
@@ -57,8 +96,8 @@ class Group():
         """ADD CODE HERE"""
         pass
 
-    #adds a game to the division
-    def addGame(self, team1, team2, outcome):
+    #updates Group to get the new group leaders
+    def updateGroup(self):
         #outcome = (team1, team2)
         pass
 
@@ -67,7 +106,7 @@ class Group():
         pass
 
     def getTeamNames(self):
-        return team_names
+        return self.team_names
 
 class Division(Group):
 
@@ -93,16 +132,15 @@ def sameConference(team1, team2):
 def sameDivision(team1, team2):
     return team1.division == team2.division
     
-def updateTeam((winning_team, losing_team, score), teams, divisions, conferences):
+def updateSeason((winning_team, losing_team, score), teams, divisions, conferences):
     team1 = teams[winning_team]
     team2 = teams[losing_team]
-    team1.addGame(losing_team, score)
-    team2.addGame(winning_team, [score[1], score[0]])
+    team1.addGame(team2, score)
+    team2.addGame(team1, [score[1], score[0]])
     if sameConference(team1, team2):
-        conferences[team1.conference].addGame(team1, team2, score)
+        conferences[team1.conference].updateGroup()
     if sameDivision(team1, team2):
-        divisions[team1.division].addGame(team1, team2, score)
-
+        divisions[team1.division].updateGroup()
         
     
 
@@ -111,7 +149,7 @@ def main():
     divisions = generateDivisions()
     for date in GAME_DATA.keys():
         for game in GAME_DATA[date]:
-            updateTeam(game, teams)
+            updateSeason(game, teams)
             
     # team = Team("bobcats", ["lol"])
     # print team.getName()
@@ -123,4 +161,5 @@ def main():
     print div.name
 
 if __name__ == "__main__":
+    unittest.main()
     main()
