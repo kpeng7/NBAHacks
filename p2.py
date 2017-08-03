@@ -78,7 +78,7 @@ class Group():
     name = ""
     teams = []
     team_names = []
-    group_leaders = []
+    group_leader = None
 
     #constructor for Group object
     def __init__(self, name, teams):
@@ -107,6 +107,9 @@ class Group():
     def getTeamNames(self):
         return self.team_names
 
+    def settleTie(self):
+        pass
+
 class Division(Group):
 
     #constructor for division object
@@ -116,9 +119,12 @@ class Division(Group):
     def rankTeams(self):
         ranked_dict = {}
         for team in self.teams:
-            ranked_dict[team.name] = float(team.division_games_won)/float(team.division_games_played)
+            ranked_dict[float(team.division_games_won)/float(team.division_games_played)].append(team)
         ranked = sorted(ranked_dict.keys())
-        self.leaders.
+        if len(ranked_dict[ranked[0]]) == 1:
+            self.group_leader = ranked_dict[ranked[0]][0].name
+        else:
+            self.group_leader = self.settleTie[ranked_dict[ranked[0]]]
 
 
 class Conference(Group):
