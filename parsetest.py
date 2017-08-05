@@ -55,6 +55,4 @@ print conference_list.keys()
 for row in games.iter_rows(range_string="A2:E1231"):
     game = (row[1].value, row[2].value, (row[3].value, row[4].value))
     GAME_DATA[row[0].value].append(game)
-print GAME_DATA
-print GAME_DATA.keys()
 

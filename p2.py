@@ -140,7 +140,10 @@ class Group():
     def rankByDivWonLostPercentage(self, teams):
         out = []
         div_won_lost = defaultdict(list)
+        division = teams[0].division
         for team in teams:
+            if not team.division == division:
+                return [teams]
             div_won_lost[team.division_games_won / team.division_games_played] = team
         sorted_keys = sorted(div_won_lost.keys())
         for key in sorted_keys:
@@ -157,11 +160,25 @@ class Group():
             out.append(conf_won_lost[key])
         return out
     
-    def rankByPlayoffEligibleInOwnConf(self, teams):
-        pass
-
-    def rankByPlayoffEligibleInOtherConf(self, teams):
-        pass
+    def rankByPlayoffEligibleInConf(self, teams, conf):
+        out = []
+        eligible_teams = []
+        for team in conf.teams:
+            if team.eligible == True:
+                eligible_teams.append(team)
+        record_to_team = defaultdict(list)
+        for team in teams:
+            total_wins = 0
+            total_losses = 0
+            for eligible in eligible_teams:
+                if not eligible.name == team.name:
+                    total_wins += team.opponents[eligible.name][0]
+                    total_losses += team.opponents[eligible.name][1]
+            record_to_team[total_wins/(total_wins + total_losses)].append(team)
+        sorted_keys = sorted(record_to_team.keys())
+        for key in sorted_keys:
+            out.append(record_to_team[key])
+        return out
 
     def settleTie(self, tied_teams):
         if len(tied_teams) == 1:
@@ -209,6 +226,17 @@ class Group():
                 for teams in teams_list:
                     out.append(self.settleTie(teams))
                 return out
+            teams_list = self.rankByDivWonLostPercentage(tied_teams)
+            if not len(teams_list) == 1:
+                out = []
+                for teams in teams_list:
+                    out.append(self.settleTie(teams))
+            teams_list = self.rankByConfWonLostPercentage(tied_teams)
+            if not len(teams_list) == 1:
+                out = []
+                for teams in teams_list:
+                    out.append(self.settleTie(teams))
+            
             return self.settleTie(rem_tied_teams)
 
 class Division(Group):
