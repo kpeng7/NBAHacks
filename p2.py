@@ -191,10 +191,10 @@ class Group():
                     return [team1, team2]
                 else:
                     return [team2, team1]
-            elif 
-            
+            elif 0:
+                pass
             else:
-                
+                pass
                 
         else:
             teams_list = self.divisionLeader(tied_teams)

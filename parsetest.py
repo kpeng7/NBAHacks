@@ -1,5 +1,5 @@
 from openpyxl import load_workbook
-import p2
+from p2 import *
 
 wb = load_workbook('Analytics_Attachment.xlsx')
 
@@ -15,7 +15,7 @@ GAME_DATA = {}
 
 #generateTeams
 for row in ws.rows:
-    team1 = Team(self, row[0].value, row[1].value, row[2].value, opponents):
+    team1 = Team(row[0].value, row[1].value, row[2].value, opponents)
     team_list[row[0].value] = team1
 print team_list.keys()
 
@@ -27,8 +27,8 @@ for team in team_list:
         for team_temp in team_list:
             if team_temp.division == current_division:
                 teams_division_list.append(team_temp)
-        division_temp = Division(self, current_division, teams_division_list)
-        division_list[current_division] = division1
+        division_temp = Division(current_division, teams_division_list)
+        division_list[current_division] = division_temp
 print division_list.keys()
 
 #generateConference
@@ -39,8 +39,8 @@ for team in team_list:
         teams_west_list.append(team)
     elif team.conference == "East":
         teams_east_list.append(team)
-west_conference = Conference(self, "West", teams_west_list)
-east_conference = Conference(self, "East", teams_east_list)
+west_conference = Conference("West", teams_west_list)
+east_conference = Conference("East", teams_east_list)
 conference_list["West"] = west_conference
 conference_list["East"] = east_conference
 print conference_list.keys()
