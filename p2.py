@@ -1,4 +1,5 @@
 import unittest
+from collections import defaultdict
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = {}
@@ -106,9 +107,109 @@ class Group():
 
     def getTeamNames(self):
         return self.team_names
-
-    def settleTie(self):
+    
+    def divisionLeader(self, teams):
+        division_leaders = []
+        non_division_leaders = []
+        for team in teams:
+            if team.division_rank == 1:
+                division_leaders.append(team)
+            else: 
+                non_division_leaders.append(team)
+        return (division_leaders, non_division_leaders)
+    
+    def rankByRecordAgainstAll(self, teams):
+        out = []
+        records = {}
+        record_to_team = defaultdict(list)
+        for i in len(teams):
+            total_games = 0
+            team1 = teams[i]
+            for j in range(i + 1, len(teams)):
+                team2 = teams[j]
+                (wins, loss) = team1.opponents[team2.name]
+                total_games += wins + loss
+                records[team1] += wins
+                records[team2] += loss
+            record_to_team[records[team1] / total_games].append(team1)
+        sorted_keys = sorted(record_to_team.keys())
+        for key in sorted_keys:
+            out.append(record_to_team[key])
+        return out
+    
+    def rankByDivWonLostPercentage(self, teams):
+        out = []
+        div_won_lost = defaultdict(list)
+        for team in teams:
+            div_won_lost[team.division_games_won / team.division_games_played] = team
+        sorted_keys = sorted(div_won_lost.keys())
+        for key in sorted_keys:
+            out.append(div_won_lost[key])
+        return out
+    
+    def rankByConfWonLostPercentage(self, teams):
+        out = []
+        conf_won_lost = defaultdict(list)
+        for team in teams:
+            conf_won_lost[team.conference_games_won / team.conference_games_played] = team
+        sorted_keys = sorted(conf_won_lost.keys())
+        for key in sorted_keys:
+            out.append(conf_won_lost[key])
+        return out
+    
+    def rankByPlayoffEligibleInOwnConf(self, teams):
         pass
+
+    def rankByPlayoffEligibleInOtherConf(self, teams):
+        pass
+
+    def settleTie(self, tied_teams):
+        if len(tied_teams) == 1:
+            return tied_teams
+        elif len(tied_teams) == 2:
+            team1 = tied_teams[0]
+            team2 = tied_teams[1]
+            team1_vs_team2_record = team1.opponents                     #team 1 (wins, losses) against team2
+            if not float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) == 1:
+                if float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) < 1:
+                    #team 1 less wins than team 2
+                    return [team2, team1]
+                else:
+                    return [team1, team2]
+            elif team1.division_rank == 1 or team2.division_rank == 1 and not team1.division_rank == team2.division_rank :
+                if team1.division_rank == 1:
+                    return [team1, team2]
+                else:
+                    return [team2, team1]
+            elif team1.division == team2.division and not team1.division_games_won / team1.division_games_played == team2.division_games_won / team2.division_games_played:
+                if team1.division_games_won / team1.division_games_played > team2.division_games_won / team2.division_games_played:
+                    return [team1, team2]
+                else:
+                    return [team2, team1]
+            elif not team1.conference_games_won / team1.conference_games_played == team2.conference_games_won / team2.conference_games_played:
+                if team1.conference_games_won / team1.conference_games_played > team2.conference_games_won / team2.conference_games_played:
+                    return [team1, team2]
+                else:
+                    return [team2, team1]
+            elif 
+            
+            else:
+                
+                
+        else:
+            teams_list = self.divisionLeader(tied_teams)
+            if not len(teams_list) == 1:
+                out = []
+                for teams in teams_list:
+                    out.append(self.settleTie(teams_list))
+                return out
+            teams_list = self.rankByRecordAgainstAll(tied_teams)
+            if not len(teams_list) == 1:
+                out = []
+                for teams in teams_list:
+                    out.append(self.settleTie(teams))
+                return out
+            return self.settleTie(rem_tied_teams)
 
 class Division(Group):
 
@@ -124,11 +225,24 @@ class Division(Group):
         if len(ranked_dict[ranked[0]]) == 1:
             self.group_leader = ranked_dict[ranked[0]][0].name
         else:
-            self.group_leader = self.settleTie[ranked_dict[ranked[0]]]
+            self.group_leader = self.settleTie(ranked_dict[ranked[0]])
 
 
 class Conference(Group):
-    pass
+    #constructor for conference object
+    def __init__(self, name, teams):
+        Group.__init__(self, name, teams)
+        
+    def rankTeams(self):
+        ranked_dict = {}
+        for team in self.teams:
+            ranked_dict[float(team.conference_games_won)/float(team.conference_games_played)].append(team)
+        ranked = sorted(ranked_dict.keys())
+        if len(ranked_dict[ranked[0]]) == 1:
+            self.group_leader = ranked_dict[ranked[0]][0].name
+        else:
+            self.group_leader = self.settleTie(ranked_dict[ranked[0]])
+    
 
 def generateTeams():
     #returns dictionary of team name : team object
@@ -149,10 +263,11 @@ def updateSeason((winning_team, losing_team, score), teams, divisions, conferenc
     team2 = teams[losing_team]
     team1.addGame(team2, score)
     team2.addGame(team1, [score[1], score[0]])
-    if sameConference(team1, team2):
-        conferences[team1.conference].updateGroup()
     if sameDivision(team1, team2):
         divisions[team1.division].updateGroup()
+    if sameConference(team1, team2):
+        conferences[team1.conference].updateGroup()
+
         
     
 
