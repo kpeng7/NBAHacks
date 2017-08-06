@@ -1,5 +1,6 @@
 import unittest
 from collections import defaultdict
+import random
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = {}
@@ -179,65 +180,117 @@ class Group():
         for key in sorted_keys:
             out.append(record_to_team[key])
         return out
+    
+    def rankByPointDifferential(self, teams):
+        out = []
+        point_dif = defaultdict(list)
+        for team in teams:
+            point_dif[team.points_scored - team.points_allowed].append(team)
+        sorted_keys = sorted(point_dif.keys())
+        for key in sorted_keys:
+            out.append(point_dif[key])
+        return out
 
-    def settleTie(self, tied_teams):
+    def settleTie(self, tied_teams, conf, opp_conf):
         if len(tied_teams) == 1:
             return tied_teams
         elif len(tied_teams) == 2:
-            team1 = tied_teams[0]
-            team2 = tied_teams[1]
-            team1_vs_team2_record = team1.opponents                     #team 1 (wins, losses) against team2
-            if not float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) == 1:
-                if float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) < 1:
-                    #team 1 less wins than team 2
-                    return [team2, team1]
-                else:
-                    return [team1, team2]
-            elif team1.division_rank == 1 or team2.division_rank == 1 and not team1.division_rank == team2.division_rank :
-                if team1.division_rank == 1:
-                    return [team1, team2]
-                else:
-                    return [team2, team1]
-            elif team1.division == team2.division and not team1.division_games_won / team1.division_games_played == team2.division_games_won / team2.division_games_played:
-                if team1.division_games_won / team1.division_games_played > team2.division_games_won / team2.division_games_played:
-                    return [team1, team2]
-                else:
-                    return [team2, team1]
-            elif not team1.conference_games_won / team1.conference_games_played == team2.conference_games_won / team2.conference_games_played:
-                if team1.conference_games_won / team1.conference_games_played > team2.conference_games_won / team2.conference_games_played:
-                    return [team1, team2]
-                else:
-                    return [team2, team1]
-            elif 0:
-                pass
-            else:
-                pass
+            list_of_checks = [self.rankByRecordAgainstAll(tied_teams), \
+                              self.divisionLeader(tied_teams), \
+                              self.rankByDivWonLostPercentage(tied_teams), \
+                              self.rankByConfWonLostPercentage(tied_teams), \
+                              self.rankByPlayoffEligibleInConf(tied_teams, conf), \
+                              self.rankByPlayoffEligibleInConf(tied_teams, opp_conf), \
+                              self.rankByPointDifferential(tied_teams), \
+                              random.shuffle(tied_teams)]
+            for teams_list in list_of_checks:
+                if not len(teams_list) == 1:
+                    out = []
+                    for teams in teams_list:
+                        out.extend(self.settleTie(teams))
+                    return out
+#             team1 = tied_teams[0]
+#             team2 = tied_teams[1]
+#             team1_vs_team2_record = team1.opponents                     #team 1 (wins, losses) against team2
+#             if not float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) == 1:
+#                 if float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) < 1:
+#                     #team 1 less wins than team 2
+#                     return [team2, team1]
+#                 else:
+#                     return [team1, team2]
+#             elif team1.division_rank == 1 or team2.division_rank == 1 and not team1.division_rank == team2.division_rank :
+#                 if team1.division_rank == 1:
+#                     return [team1, team2]
+#                 else:
+#                     return [team2, team1]
+#             elif team1.division == team2.division and not team1.division_games_won / team1.division_games_played == team2.division_games_won / team2.division_games_played:
+#                 if team1.division_games_won / team1.division_games_played > team2.division_games_won / team2.division_games_played:
+#                     return [team1, team2]
+#                 else:
+#                     return [team2, team1]
+#             elif not team1.conference_games_won / team1.conference_games_played == team2.conference_games_won / team2.conference_games_played:
+#                 if team1.conference_games_won / team1.conference_games_played > team2.conference_games_won / team2.conference_games_played:
+#                     return [team1, team2]
+#                 else:
+#                     return [team2, team1]
+#             elif 0:
+#                 pass
+#             else:
+#                 pass
                 
         else:
-            teams_list = self.divisionLeader(tied_teams)
-            if not len(teams_list) == 1:
-                out = []
-                for teams in teams_list:
-                    out.append(self.settleTie(teams_list))
-                return out
-            teams_list = self.rankByRecordAgainstAll(tied_teams)
-            if not len(teams_list) == 1:
-                out = []
-                for teams in teams_list:
-                    out.append(self.settleTie(teams))
-                return out
-            teams_list = self.rankByDivWonLostPercentage(tied_teams)
-            if not len(teams_list) == 1:
-                out = []
-                for teams in teams_list:
-                    out.append(self.settleTie(teams))
-            teams_list = self.rankByConfWonLostPercentage(tied_teams)
-            if not len(teams_list) == 1:
-                out = []
-                for teams in teams_list:
-                    out.append(self.settleTie(teams))
+            list_of_checks = [self.divisionLeader(tied_teams), \
+                              self.rankByRecordAgainstAll(tied_teams), \
+                              self.rankByDivWonLostPercentage(tied_teams), \
+                              self.rankByConfWonLostPercentage(tied_teams), \
+                              self.rankByPlayoffEligibleInConf(tied_teams, conf), \
+                              self.rankByPointDifferential(tied_teams), \
+                              random.shuffle(tied_teams)]
             
-            return self.settleTie(rem_tied_teams)
+            for teams_list in list_of_checks:
+                if not len(teams_list) == 1:
+                    out = []
+                    for teams in teams_list:
+                        out.extend(self.settleTie(teams))
+                    return out
+            
+#             teams_list = self.divisionLeader(tied_teams)
+#             if not len(teams_list) == 1:
+#                 out = []
+#                 for teams in teams_list:
+#                     out.extend(self.settleTie(teams))
+#                 return out
+#             teams_list = self.rankByRecordAgainstAll(tied_teams)
+#             if not len(teams_list) == 1:
+#                 out = []
+#                 for teams in teams_list:
+#                     out.extend(self.settleTie(teams))
+#                 return out
+#             teams_list = self.rankByDivWonLostPercentage(tied_teams)
+#             if not len(teams_list) == 1:
+#                 out = []
+#                 for teams in teams_list:
+#                     out.extend(self.settleTie(teams))
+#                 return out
+#             teams_list = self.rankByConfWonLostPercentage(tied_teams)
+#             if not len(teams_list) == 1:
+#                 out = []
+#                 for teams in teams_list:
+#                     out.extend(self.settleTie(teams))
+#                 return out
+#             teams_list = self.rankByPlayoffEligibleInConf(tied_teams, conf)
+#             if not len(teams_list) == 1:
+#                 out = []
+#                 for teams in teams_list:
+#                     out.extend(self.settleTie(teams))
+#                 return out
+#             teams_list = self.rankByPointDifferential(tied_teams)
+#             if not len(teams_list) == 1:
+#                 out = []
+#                 for teams in teams_list:
+#                     out.extend(self.settleTie(teams))
+#                 return out
+#             return random.shuffle(tied_teams)
 
 class Division(Group):
 

@@ -12,11 +12,10 @@ team_list = {}
 division_list = {}
 conference_list = {}
 GAME_DATA = defaultdict(list)
-
-for row in ws.iter_rows(range_string="A2:C31"):
-    opponents.append(row[0].value)
     
 #generateTeams
+for row in ws.iter_rows(range_string="A2:C31"):
+    opponents.append(row[0].value)
 for row in ws.iter_rows(range_string="A2:C31"):
     team1 = Team(row[0].value, row[1].value, row[2].value, opponents)
     team_list[row[0].value] = team1
