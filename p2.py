@@ -306,7 +306,7 @@ def generateGameData(games):
         GAME_DATA[row[0].value].append(game)
     
 def checkElimination(team):
-    
+    pass
     
 def updateSeason((first_team, second_team, score), teams, divisions, conferences, at_least_41_games_played):
     team1 = teams[first_team]
