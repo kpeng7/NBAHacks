@@ -347,9 +347,9 @@ def generateGameData(games):
         game = (row[1].value, row[2].value, [row[3].value, row[4].value])
         GAME_DATA[row[0].value].append(game)
     
-def checkElimination(team, date, conferences):
+def checkElimination(team, date, conference):
     if team.conference_rank > 8:
-        eighth_seed = conferences[team.conference].rankings[8].loseRest()
+        eighth_seed = conference.rankings[8].loseRest()
         print "****", eighth_seed.name, eighth_seed.games_won, eighth_seed.games_played
         team_possible = team.winRest()
         if eighth_seed.games_won / eighth_seed.games_played > team_possible.games_won / team_possible.games_played:
@@ -366,11 +366,6 @@ def updateSeason(date, (first_team, second_team, score), teams, divisions, confe
     if at_least_41_games_played:
         for conference_names in conferences:
             conferences[conference_names].rankTeams()
-        if team1.eliminated == "Playoffs":
-            team1.eliminated = checkElimination(team1, date, conferences)
-        if team2.eliminated == "Playoffs":
-            team2.eliminated = checkElimination(team2, date, conferences)
-            
     return at_least_41_games_played
 
 def main():
@@ -389,6 +384,12 @@ def main():
     for date in sorted(GAME_DATA.keys()):
         for game in GAME_DATA[date]:
             at_least_41_games_played = updateSeason(date, game, teams, divisions, conferences, at_least_41_games_played)
+        for team in WESTERN_CONF.teams:
+            if team.eliminated == "Playoffs":
+                team.eliminated = checkElimination(team, date, WESTERN_CONF)
+        for team in EASTERN_CONF.teams:
+            if team.eliminated == "Playoffs":
+                team.eliminated = checkElimination(team, date, EASTERN_CONF)
     for team in teams:
         print team + ":\t" + str(teams[team].eliminated)
 
