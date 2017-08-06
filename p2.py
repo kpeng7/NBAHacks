@@ -1,9 +1,11 @@
 import unittest
 from collections import defaultdict
 import random
+from openpyxl import load_workbook
+from collections import defaultdict
 
 #dictionary of date : [(winning team, losing team, score)]
-GAME_DATA = {}
+GAME_DATA = defaultdict(list)
 
 #once one team plays more than 41 games 
 
@@ -44,10 +46,13 @@ class Team():
     opponents = {}          #dict of opponents names (str): [number of wins, number of losses]
     points_scored = 0
     points_allowed = 0
-    eliminated = None
+    eliminated = "Playoffs"
 
     #constructor for Team object
-    def __init__(self, name, division, conference, opponents_list):
+    def __init__(self, name, division, conference, opponents_list, opponents = None):
+        if opponents == None:
+            opponents = {}
+        self.opponents = opponents
         self.name = name
         self.division = division
         self.conference = conference
@@ -81,33 +86,30 @@ class Group():
     teams = []
     team_names = []
     group_leader = None
+    rankings = {} #dict of rank : team
 
     #constructor for Group object
-    def __init__(self, name, teams):
+    def __init__(self, name, teams, team_names = None):
+        if team_names == None:
+            team_names = []
+        self.team_names = team_names
         self.name = name
         self.teams = teams
         for team in teams:
             self.team_names.append(team.name)
 
-    #adds a team to the Group
-    def addTeam(self, team):
-        self.teams.append(team)
-
-    #ranks teams within the Group
-    def rankTeams(self):
-        pass
-
-    #updates Group to get the new group leaders
-    def updateGroup(self):
-        #outcome = (team1, team2)
-        pass
-
-    #returns the rank of a given team in the division
-    def getRank(self, team):
-        pass
-
     def getTeamNames(self):
         return self.team_names
+    
+    def rankByOverallWinPercentage(self, teams):
+        out = []
+        ranked_dict = defaultdict[list]
+        for team in self.teams:
+            ranked_dict[float(team.division_games_won)/float(team.division_games_played)].append(team)
+        sorted_keys = sorted(ranked_dict.keys())
+        for key in sorted_keys:
+            out.append(ranked_dict[key])
+        return out
     
     def divisionLeader(self, teams):
         division_leaders = []
@@ -195,7 +197,8 @@ class Group():
         if len(tied_teams) == 1:
             return tied_teams
         elif len(tied_teams) == 2:
-            list_of_checks = [self.rankByRecordAgainstAll(tied_teams), \
+            list_of_checks = [self.rankByOverallWinPercentage(tied_teams), \
+                              self.rankByRecordAgainstAll(tied_teams), \
                               self.divisionLeader(tied_teams), \
                               self.rankByDivWonLostPercentage(tied_teams), \
                               self.rankByConfWonLostPercentage(tied_teams), \
@@ -239,7 +242,8 @@ class Group():
 #                 pass
                 
         else:
-            list_of_checks = [self.divisionLeader(tied_teams), \
+            list_of_checks = [self.rankByOverallWinPercentage(tied_teams), \
+                              self.divisionLeader(tied_teams), \
                               self.rankByRecordAgainstAll(tied_teams), \
                               self.rankByDivWonLostPercentage(tied_teams), \
                               self.rankByConfWonLostPercentage(tied_teams), \
@@ -315,23 +319,56 @@ class Conference(Group):
         Group.__init__(self, name, teams)
         
     def rankTeams(self):
-        ranked_dict = {}
-        for team in self.teams:
-            ranked_dict[float(team.conference_games_won)/float(team.conference_games_played)].append(team)
-        ranked = sorted(ranked_dict.keys())
-        if len(ranked_dict[ranked[0]]) == 1:
-            self.group_leader = ranked_dict[ranked[0]][0].name
-        else:
-            self.group_leader = self.settleTie(ranked_dict[ranked[0]])
-    
+        self.settleTie(self.teams)
 
-def generateTeams():
+def generateTeams(ws):
+    team_list = {}
+    opponents = []
     #returns dictionary of team name : team object
-    pass
+    for row in ws.iter_rows(range_string="A2:C31"):
+        opponents.append(row[0].value)
+    for row in ws.iter_rows(range_string="A2:C31"):
+        team1 = Team(row[0].value, row[1].value, row[2].value, opponents)
+        team_list[row[0].value] = team1
+    return team_list
 
-def generateDivisions():
+def generateDivisions(team_list):
     #returns dictionary of division name : division object
-    pass
+    division_list = {}
+    for team_name in team_list:
+        team = team_list[team_name]
+        current_division = team.division
+        if not division_list.has_key(current_division):
+            teams_division_list = []
+            for team_name_temp in team_list:
+                team_temp = team_list[team_name_temp]
+                if team_temp.division == current_division:
+                    teams_division_list.append(team_temp)
+            division_temp = Division(current_division, teams_division_list)
+            division_list[current_division] = division_temp
+    return division_list
+
+def generateConference(team_list):
+    #returns dictionary of conference name : conference object
+    conference_list = {}
+    teams_west_list = []
+    teams_east_list = []
+    for team_name in team_list:
+        team = team_list[team_name]
+        if team.conference == "West":
+            teams_west_list.append(team)
+        elif team.conference == "East":
+            teams_east_list.append(team)
+    west_conference = Conference("West", teams_west_list)
+    east_conference = Conference("East", teams_east_list)
+    conference_list["West"] = west_conference
+    conference_list["East"] = east_conference
+    return conference_list
+    
+def generateGameData(games):
+    for row in games.iter_rows(range_string="A2:E1231"):
+        game = (row[1].value, row[2].value, [row[3].value, row[4].value])
+        GAME_DATA[row[0].value].append(game)
 
 def sameConference(team1, team2):
     return team1.conference == team2.conference
@@ -339,35 +376,39 @@ def sameConference(team1, team2):
 def sameDivision(team1, team2):
     return team1.division == team2.division
     
-def updateSeason((winning_team, losing_team, score), teams, divisions, conferences):
-    team1 = teams[winning_team]
-    team2 = teams[losing_team]
+def updateSeason((first_team, second_team, score), teams, divisions, conferences, at_least_41_games_played):
+    team1 = teams[first_team]
+    team2 = teams[second_team]
     team1.addGame(team2, score)
     team2.addGame(team1, [score[1], score[0]])
     if sameDivision(team1, team2):
         divisions[team1.division].updateGroup()
     if sameConference(team1, team2):
         conferences[team1.conference].updateGroup()
-
-        
-    
+    if not at_least_41_games_played and (team1.games_played == 41 or team2.games_played == 41):
+        at_least_41_games_played = True
+    if at_least_41_games_played:
+        for conference_names in conferences:
+            conferences[conference_names].rankTeams()
+            
+    return at_least_41_games_played
 
 def main():
-    teams = generateTeams()
-    divisions = generateDivisions()
+    wb = load_workbook('Analytics_Attachment.xlsx')
+    ws = wb['Division_Info']
+    games = wb['2016_17_NBA_Scores']
+    teams = generateTeams(ws)
+    conferences = generateConference(teams)
+    divisions = generateDivisions(teams)
+    generateGameData(games)
+    at_least_41_games_played = False
     for date in GAME_DATA.keys():
         for game in GAME_DATA[date]:
-            updateSeason(game, teams)
+            at_least_41_games_played = updateSeason(game, teams, divisions, conferences, at_least_41_games_played)
             
-    # team = Team("bobcats", ["lol"])
-    # print team.getName()
-    # print team.opponents
-    # team.addGame("lol", "w")
-    # print team.opponents
-
-    div = Division("east", 'lol')
-    print div.name
+    for team in teams:
+        print team + ":\t" + teams[team].eliminated
 
 if __name__ == "__main__":
-    unittest.main()
+#     unittest.main()
     main()
