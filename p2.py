@@ -6,6 +6,8 @@ from collections import defaultdict
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = defaultdict(list)
+WESTERN_CONF = None
+EASTERN_CONF = None
 
 #once one team plays more than 41 games 
 
@@ -23,13 +25,6 @@ class Tests(unittest.TestCase):
         self.assertEqual(team1.opponents["name2"], [1, 0])
         self.assertEqual(team1.points_scored, 100)
         self.assertEqual(team1.points_allowed, 50)
-        
-    def testSameConference(self):
-        team1 = Team("name", "division", "conference", [])
-        team2 = Team(None, None, "conference", [])
-        team3 = Team("", "", "", [])
-        self.assertEqual(sameConference(team1, team2), True)
-        self.assertEqual(sameConference(team1, team3), False)
 
 class Team():
     name = ""
@@ -98,8 +93,10 @@ class Group():
         for team in teams:
             self.team_names.append(team.name)
 
-    def getTeamNames(self):
-        return self.team_names
+    def rankTeams(self, conf, opp_conf):
+        ranked_list = self.settleTie([self.teams], conf, opp_conf)
+        for i in range(len(ranked_list)):
+            self.rankings[i + 1] = ranked_list[i]
     
     def rankByOverallWinPercentage(self, teams):
         out = []
@@ -234,25 +231,24 @@ class Division(Group):
     #constructor for division object
     def __init__(self, name, teams):
         Group.__init__(self, name, teams)
-        
-    def rankTeams(self):
-        ranked_dict = {}
-        for team in self.teams:
-            ranked_dict[float(team.division_games_won)/float(team.division_games_played)].append(team)
-        ranked = sorted(ranked_dict.keys())
-        if len(ranked_dict[ranked[0]]) == 1:
-            self.group_leader = ranked_dict[ranked[0]][0].name
-        else:
-            self.group_leader = self.settleTie(ranked_dict[ranked[0]])
-
 
 class Conference(Group):
+    divisions = []
     #constructor for conference object
-    def __init__(self, name, teams):
+    def __init__(self, name, teams, divisions):
         Group.__init__(self, name, teams)
+        self.divisions = divisions
         
     def rankTeams(self):
-        self.settleTie(self.teams)
+        for division in self.divisions:
+            if self.name == "West":
+                division.rankTeams(WESTERN_CONF, EASTERN_CONF)
+            else:
+                division.rankTeams(EASTERN_CONF, WESTERN_CONF)
+        if self.name == "West":
+            Group.rankTeams(self, WESTERN_CONF, EASTERN_CONF)
+        else:
+            Group.rankTeams(self, EASTERN_CONF, WESTERN_CONF)
 
 def generateTeams(ws):
     team_list = {}
@@ -281,19 +277,25 @@ def generateDivisions(team_list):
             division_list[current_division] = division_temp
     return division_list
 
-def generateConference(team_list):
+def generateConference(team_list, divisions_list):
     #returns dictionary of conference name : conference object
     conference_list = {}
     teams_west_list = []
     teams_east_list = []
+    divisions_west_list = []
+    divisions_east_list = []
     for team_name in team_list:
         team = team_list[team_name]
         if team.conference == "West":
             teams_west_list.append(team)
+            if not divisions_list[team.division] in divisions_west_list:
+                divisions_west_list.append(divisions_list[team.division])
         elif team.conference == "East":
             teams_east_list.append(team)
-    west_conference = Conference("West", teams_west_list)
-    east_conference = Conference("East", teams_east_list)
+            if not divisions_list[team.division] in divisions_east_list:
+                divisions_east_list.append(divisions_list[team.division])
+    west_conference = Conference("West", teams_west_list, divisions_west_list)
+    east_conference = Conference("East", teams_east_list, divisions_east_list)
     conference_list["West"] = west_conference
     conference_list["East"] = east_conference
     return conference_list
@@ -302,37 +304,36 @@ def generateGameData(games):
     for row in games.iter_rows(range_string="A2:E1231"):
         game = (row[1].value, row[2].value, [row[3].value, row[4].value])
         GAME_DATA[row[0].value].append(game)
-
-def sameConference(team1, team2):
-    return team1.conference == team2.conference
-
-def sameDivision(team1, team2):
-    return team1.division == team2.division
+    
+def checkElimination(team):
+    
     
 def updateSeason((first_team, second_team, score), teams, divisions, conferences, at_least_41_games_played):
     team1 = teams[first_team]
     team2 = teams[second_team]
     team1.addGame(team2, score)
     team2.addGame(team1, [score[1], score[0]])
-    if sameDivision(team1, team2):
-        divisions[team1.division].updateGroup()
-    if sameConference(team1, team2):
-        conferences[team1.conference].updateGroup()
     if not at_least_41_games_played and (team1.games_played == 41 or team2.games_played == 41):
         at_least_41_games_played = True
     if at_least_41_games_played:
         for conference_names in conferences:
             conferences[conference_names].rankTeams()
+        checkElimination(team1)
+        checkElimination(team2)
             
     return at_least_41_games_played
 
 def main():
+    global WESTERN_CONF
+    global EASTERN_CONF
     wb = load_workbook('Analytics_Attachment.xlsx')
     ws = wb['Division_Info']
     games = wb['2016_17_NBA_Scores']
     teams = generateTeams(ws)
-    conferences = generateConference(teams)
     divisions = generateDivisions(teams)
+    conferences = generateConference(teams, divisions)
+    WESTERN_CONF = conferences["West"]
+    EASTERN_CONF = conferences["East"]
     generateGameData(games)
     at_least_41_games_played = False
     for date in GAME_DATA.keys():
