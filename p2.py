@@ -3,6 +3,8 @@ from collections import defaultdict
 import random
 from openpyxl import load_workbook
 from collections import defaultdict
+import copy
+import time
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = defaultdict(list)
@@ -30,17 +32,17 @@ class Team():
     name = ""
     conference_rank = 0     #set in conference object
     division_rank = 0       #set in division object
-    games_won = 0
-    games_played = 0
+    games_won = float(0)
+    games_played = float(0)
     division = ""
     conference = ""
-    division_games_won = 0
-    division_games_played = 0
-    conference_games_won = 0
-    conference_games_played = 0
+    division_games_won = float(0)
+    division_games_played = float(0)
+    conference_games_won = float(0)
+    conference_games_played = float(0)
     opponents = {}          #dict of opponents names (str): [number of wins, number of losses]
-    points_scored = 0
-    points_allowed = 0
+    points_scored = float(0)
+    points_allowed = float(0)
     eliminated = "Playoffs"
 
     #constructor for Team object
@@ -75,6 +77,17 @@ class Team():
             if won:
                 self.conference_games_won += 1
         self.games_played += 1
+        
+    def winRest(self):
+        new_team = copy.deepcopy(self)
+        new_team.games_won = new_team.games_won + (82.0 - new_team.games_played)
+        new_team.games_played = 82.0
+        return new_team
+
+    def loseRest(self):
+        new_team = copy.deepcopy(self)
+        new_team.games_played = 82.0
+        return new_team
 
 class Group():
     name = ""
@@ -84,27 +97,38 @@ class Group():
     rankings = {} #dict of rank : team
 
     #constructor for Group object
-    def __init__(self, name, teams, team_names = None):
+    def __init__(self, name, teams, team_names = None, rankings = None):
         if team_names == None:
             team_names = []
+        if rankings == None:
+            rankings = {}
         self.team_names = team_names
+        self.rankings = rankings
         self.name = name
         self.teams = teams
         for team in teams:
             self.team_names.append(team.name)
 
     def rankTeams(self, conf, opp_conf):
-        ranked_list = self.settleTie([self.teams], conf, opp_conf)
+        ranked_list = self.settleTie(self.teams, conf, opp_conf)
+        check = {}
         for i in range(len(ranked_list)):
             self.rankings[i + 1] = ranked_list[i]
+            check[i + 1] = ranked_list[i].name
+#             print i + 1, ranked_list[i].name
+            if not self.name == "West" and not self.name == "East":
+                ranked_list[i].division_rank = i + 1
+            else:
+                ranked_list[i].conference_rank = i + 1
+        print self.name, check
     
     def rankByOverallWinPercentage(self, teams):
         out = []
-        ranked_dict = defaultdict[list]
-        for team in self.teams:
+        ranked_dict = defaultdict(list)
+        for team in teams:
             ranked_dict[float(team.division_games_won)/float(team.division_games_played)].append(team)
         sorted_keys = sorted(ranked_dict.keys())
-        for key in sorted_keys:
+        for key in reversed(sorted_keys):
             out.append(ranked_dict[key])
         return out
     
@@ -116,24 +140,36 @@ class Group():
                 division_leaders.append(team)
             else: 
                 non_division_leaders.append(team)
-        return (division_leaders, non_division_leaders)
+        if not division_leaders:
+            return [non_division_leaders]
+        elif not non_division_leaders:
+            return [division_leaders]
+        else:
+            out = []
+            out.append(division_leaders)
+            out.append(non_division_leaders)
+            return out
     
     def rankByRecordAgainstAll(self, teams):
         out = []
-        records = {}
+        records = defaultdict(int)
+        total_games = defaultdict(int)
         record_to_team = defaultdict(list)
-        for i in len(teams):
-            total_games = 0
+        for i in range(len(teams) - 1):
             team1 = teams[i]
             for j in range(i + 1, len(teams)):
                 team2 = teams[j]
                 (wins, loss) = team1.opponents[team2.name]
-                total_games += wins + loss
+                total_games[team1] += wins + loss
+                total_games[team2] += wins + loss
                 records[team1] += wins
                 records[team2] += loss
-            record_to_team[records[team1] / total_games].append(team1)
+            if total_games[team1] == 0:
+                return [teams]
+        for team in teams:
+            record_to_team[records[team] / total_games[team]].append(team1)
         sorted_keys = sorted(record_to_team.keys())
-        for key in sorted_keys:
+        for key in reversed(sorted_keys):
             out.append(record_to_team[key])
         return out
     
@@ -144,9 +180,9 @@ class Group():
         for team in teams:
             if not team.division == division:
                 return [teams]
-            div_won_lost[team.division_games_won / team.division_games_played] = team
+            div_won_lost[team.division_games_won / team.division_games_played].append(team)
         sorted_keys = sorted(div_won_lost.keys())
-        for key in sorted_keys:
+        for key in reversed(sorted_keys):
             out.append(div_won_lost[key])
         return out
     
@@ -154,9 +190,9 @@ class Group():
         out = []
         conf_won_lost = defaultdict(list)
         for team in teams:
-            conf_won_lost[team.conference_games_won / team.conference_games_played] = team
+            conf_won_lost[team.conference_games_won / team.conference_games_played].append(team)
         sorted_keys = sorted(conf_won_lost.keys())
-        for key in sorted_keys:
+        for key in reversed(sorted_keys):
             out.append(conf_won_lost[key])
         return out
     
@@ -164,19 +200,19 @@ class Group():
         out = []
         eligible_teams = []
         for team in conf.teams:
-            if team.eligible == True:
+            if team.eliminated == "Playoffs":
                 eligible_teams.append(team)
         record_to_team = defaultdict(list)
         for team in teams:
-            total_wins = 0
-            total_losses = 0
+            total_wins = 0.0
+            total_losses = 0.0
             for eligible in eligible_teams:
                 if not eligible.name == team.name:
                     total_wins += team.opponents[eligible.name][0]
                     total_losses += team.opponents[eligible.name][1]
             record_to_team[total_wins/(total_wins + total_losses)].append(team)
         sorted_keys = sorted(record_to_team.keys())
-        for key in sorted_keys:
+        for key in reversed(sorted_keys):
             out.append(record_to_team[key])
         return out
     
@@ -186,9 +222,13 @@ class Group():
         for team in teams:
             point_dif[team.points_scored - team.points_allowed].append(team)
         sorted_keys = sorted(point_dif.keys())
-        for key in sorted_keys:
+        for key in reversed(sorted_keys):
             out.append(point_dif[key])
         return out
+    
+    def randomize(self, teams):
+        random.shuffle(teams)
+        return [[team] for team in teams]
 
     def settleTie(self, tied_teams, conf, opp_conf):
         if len(tied_teams) == 1:
@@ -202,12 +242,12 @@ class Group():
                               self.rankByPlayoffEligibleInConf(tied_teams, conf), \
                               self.rankByPlayoffEligibleInConf(tied_teams, opp_conf), \
                               self.rankByPointDifferential(tied_teams), \
-                              random.shuffle(tied_teams)]
+                              self.randomize(tied_teams)]
             for teams_list in list_of_checks:
                 if not len(teams_list) == 1:
                     out = []
                     for teams in teams_list:
-                        out.extend(self.settleTie(teams))
+                        out.extend(self.settleTie(teams, conf, opp_conf))
                     return out 
         else:
             list_of_checks = [self.rankByOverallWinPercentage(tied_teams), \
@@ -217,13 +257,15 @@ class Group():
                               self.rankByConfWonLostPercentage(tied_teams), \
                               self.rankByPlayoffEligibleInConf(tied_teams, conf), \
                               self.rankByPointDifferential(tied_teams), \
-                              random.shuffle(tied_teams)]
-            
+                              self.randomize(tied_teams)]
             for teams_list in list_of_checks:
                 if not len(teams_list) == 1:
                     out = []
                     for teams in teams_list:
-                        out.extend(self.settleTie(teams))
+                        try:
+                            out.extend(self.settleTie(teams, conf, opp_conf))
+                        except:
+                            out.extend(self.settleTie(teams, conf, opp_conf))
                     return out
 
 class Division(Group):
@@ -305,10 +347,16 @@ def generateGameData(games):
         game = (row[1].value, row[2].value, [row[3].value, row[4].value])
         GAME_DATA[row[0].value].append(game)
     
-def checkElimination(team):
-    pass
+def checkElimination(team, date, conferences):
+    if team.conference_rank > 8:
+        eighth_seed = conferences[team.conference].rankings[8].loseRest()
+        print "****", eighth_seed.name, eighth_seed.games_won, eighth_seed.games_played
+        team_possible = team.winRest()
+        if eighth_seed.games_won / eighth_seed.games_played > team_possible.games_won / team_possible.games_played:
+            return date
+    return "Playoffs"
     
-def updateSeason((first_team, second_team, score), teams, divisions, conferences, at_least_41_games_played):
+def updateSeason(date, (first_team, second_team, score), teams, divisions, conferences, at_least_41_games_played):
     team1 = teams[first_team]
     team2 = teams[second_team]
     team1.addGame(team2, score)
@@ -318,8 +366,10 @@ def updateSeason((first_team, second_team, score), teams, divisions, conferences
     if at_least_41_games_played:
         for conference_names in conferences:
             conferences[conference_names].rankTeams()
-        checkElimination(team1)
-        checkElimination(team2)
+        if team1.eliminated == "Playoffs":
+            team1.eliminated = checkElimination(team1, date, conferences)
+        if team2.eliminated == "Playoffs":
+            team2.eliminated = checkElimination(team2, date, conferences)
             
     return at_least_41_games_played
 
@@ -336,12 +386,11 @@ def main():
     EASTERN_CONF = conferences["East"]
     generateGameData(games)
     at_least_41_games_played = False
-    for date in GAME_DATA.keys():
+    for date in sorted(GAME_DATA.keys()):
         for game in GAME_DATA[date]:
-            at_least_41_games_played = updateSeason(game, teams, divisions, conferences, at_least_41_games_played)
-            
+            at_least_41_games_played = updateSeason(date, game, teams, divisions, conferences, at_least_41_games_played)
     for team in teams:
-        print team + ":\t" + teams[team].eliminated
+        print team + ":\t" + str(teams[team].eliminated)
 
 if __name__ == "__main__":
 #     unittest.main()
