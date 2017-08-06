@@ -211,36 +211,7 @@ class Group():
                     out = []
                     for teams in teams_list:
                         out.extend(self.settleTie(teams))
-                    return out
-#             team1 = tied_teams[0]
-#             team2 = tied_teams[1]
-#             team1_vs_team2_record = team1.opponents                     #team 1 (wins, losses) against team2
-#             if not float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) == 1:
-#                 if float(team1_vs_team2_record[0]) / (team1_vs_team2_record[1]) < 1:
-#                     #team 1 less wins than team 2
-#                     return [team2, team1]
-#                 else:
-#                     return [team1, team2]
-#             elif team1.division_rank == 1 or team2.division_rank == 1 and not team1.division_rank == team2.division_rank :
-#                 if team1.division_rank == 1:
-#                     return [team1, team2]
-#                 else:
-#                     return [team2, team1]
-#             elif team1.division == team2.division and not team1.division_games_won / team1.division_games_played == team2.division_games_won / team2.division_games_played:
-#                 if team1.division_games_won / team1.division_games_played > team2.division_games_won / team2.division_games_played:
-#                     return [team1, team2]
-#                 else:
-#                     return [team2, team1]
-#             elif not team1.conference_games_won / team1.conference_games_played == team2.conference_games_won / team2.conference_games_played:
-#                 if team1.conference_games_won / team1.conference_games_played > team2.conference_games_won / team2.conference_games_played:
-#                     return [team1, team2]
-#                 else:
-#                     return [team2, team1]
-#             elif 0:
-#                 pass
-#             else:
-#                 pass
-                
+                    return out 
         else:
             list_of_checks = [self.rankByOverallWinPercentage(tied_teams), \
                               self.divisionLeader(tied_teams), \
@@ -257,44 +228,6 @@ class Group():
                     for teams in teams_list:
                         out.extend(self.settleTie(teams))
                     return out
-            
-#             teams_list = self.divisionLeader(tied_teams)
-#             if not len(teams_list) == 1:
-#                 out = []
-#                 for teams in teams_list:
-#                     out.extend(self.settleTie(teams))
-#                 return out
-#             teams_list = self.rankByRecordAgainstAll(tied_teams)
-#             if not len(teams_list) == 1:
-#                 out = []
-#                 for teams in teams_list:
-#                     out.extend(self.settleTie(teams))
-#                 return out
-#             teams_list = self.rankByDivWonLostPercentage(tied_teams)
-#             if not len(teams_list) == 1:
-#                 out = []
-#                 for teams in teams_list:
-#                     out.extend(self.settleTie(teams))
-#                 return out
-#             teams_list = self.rankByConfWonLostPercentage(tied_teams)
-#             if not len(teams_list) == 1:
-#                 out = []
-#                 for teams in teams_list:
-#                     out.extend(self.settleTie(teams))
-#                 return out
-#             teams_list = self.rankByPlayoffEligibleInConf(tied_teams, conf)
-#             if not len(teams_list) == 1:
-#                 out = []
-#                 for teams in teams_list:
-#                     out.extend(self.settleTie(teams))
-#                 return out
-#             teams_list = self.rankByPointDifferential(tied_teams)
-#             if not len(teams_list) == 1:
-#                 out = []
-#                 for teams in teams_list:
-#                     out.extend(self.settleTie(teams))
-#                 return out
-#             return random.shuffle(tied_teams)
 
 class Division(Group):
 
