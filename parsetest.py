@@ -12,7 +12,7 @@ team_list = {}
 division_list = {}
 conference_list = {}
 GAME_DATA = defaultdict(list)
-    
+
 #generateTeams
 for row in ws.iter_rows(range_string="A2:C31"):
     opponents.append(row[0].value)
@@ -38,14 +38,22 @@ print division_list.keys()
 #generateConference
 teams_west_list = []
 teams_east_list = []
+divisions_west_list = []
+divisions_east_list = []
 for team_name in team_list:
     team = team_list[team_name]
     if team.conference == "West":
         teams_west_list.append(team)
     elif team.conference == "East":
         teams_east_list.append(team)
-west_conference = Conference("West", teams_west_list)
-east_conference = Conference("East", teams_east_list)
+for division_name in division_list:
+    division = division_list[division_name]
+    if division.teams[0].conference == "West":
+        divisions_west_list.append(division)
+    elif division.teams[0].conference == "East":
+        divisions_east_list.append(division)
+west_conference = Conference("West", teams_west_list, divisions_west_list)
+east_conference = Conference("East", teams_east_list, divisions_east_list)
 conference_list["West"] = west_conference
 conference_list["East"] = east_conference
 print conference_list.keys()
@@ -55,4 +63,3 @@ for row in games.iter_rows(range_string="A2:E1231"):
     game = (row[1].value, row[2].value, [row[3].value, row[4].value])
     GAME_DATA[row[0].value].append(game)
 print GAME_DATA
-
