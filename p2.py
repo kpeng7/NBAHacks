@@ -43,11 +43,24 @@ class Tests(unittest.TestCase):
         team3 = Team("3", "d1", "c1", ["1", "2", "4"])
         team4 = Team("4", "d1", "c1", ["1", "2", "3"])
         g1 = Group("g1", [team1, team2])
+        g2 = Group("g2", [team1, team3])
+        g3 = Group("g3", [team1, team2, team3])
+        g4 = Group("g4", [team1, team2, team3, team4])
         team1.games_played = 1
         team1.games_won = 1
         team2.games_played = 1
         team2.games_won = 0
         self.assertEqual(g1.rankByOverallWinPercentage([team1, team2]),  [[team1], [team2]])
+        team3.games_played = 1
+        team3.games_won = 1
+        self.assertEqual(g2.rankByOverallWinPercentage([team1, team3]), [[team1, team3]])
+        self.assertEqual(g3.rankByOverallWinPercentage([team1, team2, team3]), [[team1, team3], [team2]])
+        self.assertEqual(g4.rankByOverallWinPercentage([team1, team3]), [[team1, team3]])
+        team4.games_played = 100
+        team4.games_won = 30
+        self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team3, team4]), [[team1, team3], [team4], [team2]])
+        self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team4]), [[team1], [team4], [team2]])
+        
 
 class Team():
     name = ""
@@ -425,5 +438,5 @@ def main():
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
 
 if __name__ == "__main__":
-#     unittest.main()
-    main()
+    unittest.main()
+#     main()
