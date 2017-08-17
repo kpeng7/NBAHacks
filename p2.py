@@ -386,7 +386,11 @@ def checkElimination(team, date, conference):
         eighth_seed = conference.rankings[8].loseRest()
         print "****", eighth_seed.name, eighth_seed.games_won, eighth_seed.games_played
         team_possible = team.winRest()
-        if eighth_seed.games_won / eighth_seed.games_played > team_possible.games_won / team_possible.games_played:
+        if conference == WESTERN_CONF:
+            rank = conference.settleTie([eighth_seed, team_possible], conference, EASTERN_CONF)
+        else:
+            rank = conference.settleTie([eighth_seed, team_possible], conference, WESTERN_CONF)
+        if rank[0] == eighth_seed:
             return date
     return "Playoffs"
 
@@ -438,5 +442,5 @@ def main():
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
 
 if __name__ == "__main__":
-    unittest.main()
-#     main()
+#     unittest.main()
+    main()
