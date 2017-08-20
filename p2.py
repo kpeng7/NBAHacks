@@ -430,13 +430,12 @@ def main():
 
         for game in GAME_DATA[date]:
             at_least_41_games_played = updateSeason(date, game, teams, divisions, conferences, at_least_41_games_played)
-
-        #for team in WESTERN_CONF.teams:
-        #    if team.eliminated == "Playoffs":
-        #        team.eliminated = checkElimination(team, date, WESTERN_CONF)
-        #for team in EASTERN_CONF.teams:
-        #    if team.eliminated == "Playoffs":
-        #        team.eliminated = checkElimination(team, date, EASTERN_CONF)
+        for team in WESTERN_CONF.teams:
+            if team.eliminated == "Playoffs":
+                team.eliminated = checkElimination(team, date, WESTERN_CONF)
+        for team in EASTERN_CONF.teams:
+            if team.eliminated == "Playoffs":
+                team.eliminated = checkElimination(team, date, EASTERN_CONF)
     #pdb.set_trace()
     with open("Output.txt", "w") as text_file:
 
