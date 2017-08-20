@@ -6,6 +6,8 @@ from collections import defaultdict
 import copy
 import time
 import pdb
+import xlwt
+from datetime import datetime
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = defaultdict(list)
@@ -28,7 +30,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(team1.opponents["name2"], [1, 0])
         self.assertEqual(team1.points_scored, 100)
         self.assertEqual(team1.points_allowed, 50)
-        
+
 #           self.rankByOverallWinPercentage(tied_teams), \
 #           self.rankByRecordAgainstAll(tied_teams), \
 #           self.divisionLeader(tied_teams), \
@@ -61,7 +63,7 @@ class Tests(unittest.TestCase):
         team4.games_won = 30
         self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team3, team4]), [[team1, team3], [team4], [team2]])
         self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team4]), [[team1], [team4], [team2]])
-        
+
 
 class Team():
     name = ""
@@ -437,17 +439,34 @@ def main():
         #        team.eliminated = checkElimination(team, date, EASTERN_CONF)
     #pdb.set_trace()
     with open("Output.txt", "w") as text_file:
+
+        #excel sheet for displaying team and calculated dates
+        counter_row = 1
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet('A Test Sheet')
+        style0 = xlwt.easyxf('font: name Times New Roman, color-index black, bold on')
+        ws.write(1, 0, "Team", style0)
+        ws.write(1, 1, "Playoffs or Last Date", style0)
+
         text_file.write("West" + "\n")
+
         for team in teams:
             if teams[team].conference == "West":
+                counter_row = counter_row + 1
                 print team + ":\t" + str(teams[team].eliminated)
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
+                ws.write(counter_row, 0, team)
+                ws.write(counter_row, 1, str(teams[team].eliminated))
         text_file.write("\n" + "\n")
         text_file.write("East" + "\n")
         for team in teams:
             if teams[team].conference == "East":
+                counter_row = counter_row + 1
                 print team + ":\t" + str(teams[team].eliminated)
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
+                ws.write(counter_row, 0, team)
+                ws.write(counter_row, 1, str(teams[team].eliminated))
+    wb.save('nba_dates.xls')
 
 if __name__ == "__main__":
 #     unittest.main()
