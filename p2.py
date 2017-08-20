@@ -28,6 +28,40 @@ class Tests(unittest.TestCase):
         self.assertEqual(team1.opponents["name2"], [1, 0])
         self.assertEqual(team1.points_scored, 100)
         self.assertEqual(team1.points_allowed, 50)
+        
+#           self.rankByOverallWinPercentage(tied_teams), \
+#           self.rankByRecordAgainstAll(tied_teams), \
+#           self.divisionLeader(tied_teams), \
+#           self.rankByDivWonLostPercentage(tied_teams), \
+#           self.rankByConfWonLostPercentage(tied_teams), \
+#           self.rankByPlayoffEligibleInConf(tied_teams, conf), \
+#           self.rankByPlayoffEligibleInConf(tied_teams, opp_conf), \
+#           self.rankByPointDifferential(tied_teams), \
+#           self.randomize(tied_teams)
+    def testRankByOverallWinPercentage(self):
+        team1 = Team("1", "d1", "c1", ["2", "3", "4"])
+        team2 = Team("2", "d1", "c1", ["1", "3", "4"])
+        team3 = Team("3", "d1", "c1", ["1", "2", "4"])
+        team4 = Team("4", "d1", "c1", ["1", "2", "3"])
+        g1 = Group("g1", [team1, team2])
+        g2 = Group("g2", [team1, team3])
+        g3 = Group("g3", [team1, team2, team3])
+        g4 = Group("g4", [team1, team2, team3, team4])
+        team1.games_played = 1
+        team1.games_won = 1
+        team2.games_played = 1
+        team2.games_won = 0
+        self.assertEqual(g1.rankByOverallWinPercentage([team1, team2]),  [[team1], [team2]])
+        team3.games_played = 1
+        team3.games_won = 1
+        self.assertEqual(g2.rankByOverallWinPercentage([team1, team3]), [[team1, team3]])
+        self.assertEqual(g3.rankByOverallWinPercentage([team1, team2, team3]), [[team1, team3], [team2]])
+        self.assertEqual(g4.rankByOverallWinPercentage([team1, team3]), [[team1, team3]])
+        team4.games_played = 100
+        team4.games_won = 30
+        self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team3, team4]), [[team1, team3], [team4], [team2]])
+        self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team4]), [[team1], [team4], [team2]])
+        
 
 class Team():
     name = ""
@@ -127,7 +161,7 @@ class Group():
         out = []
         ranked_dict = defaultdict(list)
         for team in teams:
-            ranked_dict[float(team.division_games_won)/float(team.division_games_played)].append(team)
+            ranked_dict[float(team.games_won)/float(team.games_played)].append(team)
         sorted_keys = sorted(ranked_dict.keys())
         for key in reversed(sorted_keys):
             out.append(ranked_dict[key])
@@ -354,7 +388,11 @@ def checkElimination(team, date, conference):
         eighth_seed = conference.rankings[8].loseRest()
         print "****", eighth_seed.name, eighth_seed.games_won, eighth_seed.games_played
         team_possible = team.winRest()
-        if eighth_seed.games_won / eighth_seed.games_played > team_possible.games_won / team_possible.games_played:
+        if conference == WESTERN_CONF:
+            rank = conference.settleTie([eighth_seed, team_possible], conference, EASTERN_CONF)
+        else:
+            rank = conference.settleTie([eighth_seed, team_possible], conference, WESTERN_CONF)
+        if rank[0] == eighth_seed:
             return date
     return "Playoffs"
 
