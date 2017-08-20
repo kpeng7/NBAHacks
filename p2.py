@@ -5,6 +5,7 @@ from openpyxl import load_workbook
 from collections import defaultdict
 import copy
 import time
+import pdb
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = defaultdict(list)
@@ -130,6 +131,7 @@ class Group():
         sorted_keys = sorted(ranked_dict.keys())
         for key in reversed(sorted_keys):
             out.append(ranked_dict[key])
+        #print out
         return out
 
     def divisionLeader(self, teams):
@@ -379,17 +381,23 @@ def main():
     conferences = generateConference(teams, divisions)
     WESTERN_CONF = conferences["West"]
     EASTERN_CONF = conferences["East"]
+    #pdb.set_trace()
     generateGameData(games)
     at_least_41_games_played = False
+
+    #qpdb.set_trace()
     for date in sorted(GAME_DATA.keys()):
+
         for game in GAME_DATA[date]:
             at_least_41_games_played = updateSeason(date, game, teams, divisions, conferences, at_least_41_games_played)
-        for team in WESTERN_CONF.teams:
-            if team.eliminated == "Playoffs":
-                team.eliminated = checkElimination(team, date, WESTERN_CONF)
-        for team in EASTERN_CONF.teams:
-            if team.eliminated == "Playoffs":
-                team.eliminated = checkElimination(team, date, EASTERN_CONF)
+
+        #for team in WESTERN_CONF.teams:
+        #    if team.eliminated == "Playoffs":
+        #        team.eliminated = checkElimination(team, date, WESTERN_CONF)
+        #for team in EASTERN_CONF.teams:
+        #    if team.eliminated == "Playoffs":
+        #        team.eliminated = checkElimination(team, date, EASTERN_CONF)
+    #pdb.set_trace()
     with open("Output.txt", "w") as text_file:
         text_file.write("West" + "\n")
         for team in teams:

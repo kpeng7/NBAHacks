@@ -1,34 +1,34 @@
 West
-Los Angeles Lakers:	2017-03-05 00:00:00
+Los Angeles Lakers:	Playoffs
 San Antonio Spurs:	Playoffs
-New Orleans Pelicans:	2017-03-15 00:00:00
+New Orleans Pelicans:	Playoffs
 Portland Trail Blazers:	Playoffs
 Golden State Warriors:	Playoffs
-Dallas Mavericks:	2017-03-21 00:00:00
-Minnesota Timberwolves:	2017-03-17 00:00:00
+Dallas Mavericks:	Playoffs
+Minnesota Timberwolves:	Playoffs
 Oklahoma City Thunder:	Playoffs
 LA Clippers:	Playoffs
 Memphis Grizzlies:	Playoffs
 Utah Jazz:	Playoffs
-Phoenix Suns:	2017-03-07 00:00:00
-Sacramento Kings:	2017-03-13 00:00:00
+Phoenix Suns:	Playoffs
+Sacramento Kings:	Playoffs
 Houston Rockets:	Playoffs
-Denver Nuggets:	2017-03-27 00:00:00
+Denver Nuggets:	Playoffs
 
 
 East
 Chicago Bulls:	Playoffs
-Philadelphia 76ers:	2017-03-09 00:00:00
-Detroit Pistons:	2017-03-28 00:00:00
+Philadelphia 76ers:	Playoffs
+Detroit Pistons:	Playoffs
 Boston Celtics:	Playoffs
-Miami Heat:	2017-03-28 00:00:00
-Orlando Magic:	2017-03-26 00:00:00
-New York Knicks:	2017-03-11 00:00:00
+Miami Heat:	Playoffs
+Orlando Magic:	Playoffs
+New York Knicks:	Playoffs
 Washington Wizards:	Playoffs
 Charlotte Hornets:	Playoffs
 Milwaukee Bucks:	Playoffs
 Toronto Raptors:	Playoffs
 Cleveland Cavaliers:	Playoffs
-Atlanta Hawks:	2017-03-28 00:00:00
-Brooklyn Nets:	2017-03-05 00:00:00
-Indiana Pacers:	2017-03-28 00:00:00
+Atlanta Hawks:	Playoffs
+Brooklyn Nets:	Playoffs
+Indiana Pacers:	Playoffs
