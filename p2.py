@@ -413,6 +413,7 @@ def updateSeason(date, (first_team, second_team, score), teams, divisions, confe
 def main():
     global WESTERN_CONF
     global EASTERN_CONF
+    print "Analyzing data..."
     wb = load_workbook('Analytics_Attachment.xlsx')
     ws = wb['Division_Info']
     games = wb['2016_17_NBA_Scores']
@@ -465,6 +466,7 @@ def main():
                 ws.write(counter_row, 0, team)
                 ws.write(counter_row, 1, str(teams[team].eliminated))
     wb.save('nba_dates.xls')
+    print "Finished."
 
 if __name__ == "__main__":
 #     unittest.main()
