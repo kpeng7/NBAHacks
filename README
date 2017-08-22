@@ -31,7 +31,7 @@ Includes
 
     Team.class
 
-      
+
 
     Group.class
 
@@ -39,7 +39,7 @@ Includes
 
     Division.class
 
-      Subclass of Group class. Unneccessary, but added for clarity of code.
+      Subclass of Group class. Unnecessary, but added for clarity of code.
 
     Conference.class
 
@@ -52,9 +52,56 @@ How it works
 -------------
 
   p2.py begins by parsing the data in the spreadsheet named
-  'Analytics_Attachment.xlsx'. The program starts with the tab 'Division_Info'
-  and uses the data to generate a list of Team objects, each of which contains
-  key information about the team, including the team name, division, conference
-  and elimination date. A list of Division objects is then generated from the
-  list of Team objects and a list of Conference objects is then generated from
-  the list of Team and the list of Division objects.
+  'Analytics_Attachment.xlsx'.
+
+  The program starts with the tab 'Division_Info' and uses the data to generate
+  a list of Team objects, each of which contains key information about the team,
+  including the team name, division, conference and elimination date. A list of
+  Division objects is then generated from the list of Team objects and a list of
+  Conference objects is then generated from the list of Team and the list of
+  Division objects.
+
+  The program then parses the tab '2016_17_NBA_Scores' for the dates of each
+  game and the results. The data is stored in dictionary GAME_DATA in the format
+  date (key): list of results (values). GAME_DATA is then parsed in date order
+  and each game with its associated results is used to update the participating
+  Teams, Divisions and Conferences.
+
+  The update is done through the updateSeason method, which updates the
+  information stored in each team depending on the results of the game.
+
+  The updateSeason method then returns whether either team has played 41 games.
+  This is implemented since a team cannot possibly be eliminated until it has
+  played at least half the possible number of games, 82. Since this is the case,
+  teams do not need to be ranked until after elimination is possible.
+
+  Once 41 games have been played by any team in the league, all teams are
+  ranked. This is done by the rankTeams() call for each conference. The
+  rankTeams() method in the conference first ranks the teams by division and
+  then ranks the entire conference, using the tiebreaker rule to settle ties.
+  Ties are settled through the settleTies() method, which recursively determines
+  the order of teams from first to last in terms of rankings. All teams are
+  assumed to be tied when first ranking.
+
+  Once all teams are ranked in their respective divisions and conferences, the
+  teams that participated in the game are then checked for elimination from
+  playoff contention. This is done through the checkElimination() method. The
+  method assumes that the team being checked wins the rest of the games while
+  the 8th seeded team in the same conference loses the rest of its games. This
+  is implemented through the winRest() and loseRest() methods. The settleTie()
+  method is then called to see if there is any possibility of the team to make
+  it to the playoffs (beat the 8th seed).
+
+  The winRest() and loseRest() methods are not optimized since they do not
+  account for the games played by other teams and thus cannot account for the
+  team's division ranking, record against other teams, point differential, etc.
+  Therefore the output of the settleTie() method assumes the division ranking,
+  records, point differential, etc. after the current game has been played.
+  Thus the output of the elimination date may imply that a team has been
+  eliminated early or late depending on the previous assumption, causing the
+  imprecise dates in the resulting excel. The date of elimination is stored in
+  the Team object.
+
+  Once every game from every date in GAME_DATA has been parsed, the program
+  iterates through every Team object and the respective elimination date is
+  output to the excel file.
