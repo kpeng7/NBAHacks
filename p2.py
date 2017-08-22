@@ -375,31 +375,23 @@ def main():
         for team in EASTERN_CONF.teams:
             if team.eliminated == "Playoffs":
                 team.eliminated = checkElimination(team, date, EASTERN_CONF)
-    with open("Output.txt", "w") as text_file:
+    #excel sheet for displaying team and calculated dates
+    counter_row = 1
+    wb = xlwt.Workbook()
+    ws = wb.add_sheet('NBA_Clinch_Dates')
+    ws.write(0, 0, "Team")
+    ws.write(0, 1, "Date Eliminated")
 
-        #excel sheet for displaying team and calculated dates
-        counter_row = 1
-        wb = xlwt.Workbook()
-        ws = wb.add_sheet('NBA_Clinch_Dates')
-        ws.write(0, 0, "Team")
-        ws.write(0, 1, "Date Eliminated")
-
-        text_file.write("West" + "\n")
-
-        for team in teams:
-            if teams[team].conference == "West":
-                counter_row = counter_row + 1
-                text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
-                ws.write(counter_row, 0, team)
-                ws.write(counter_row, 1, str(teams[team].eliminated))
-        text_file.write("\n" + "\n")
-        text_file.write("East" + "\n")
-        for team in teams:
-            if teams[team].conference == "East":
-                counter_row = counter_row + 1
-                text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
-                ws.write(counter_row, 0, team)
-                ws.write(counter_row, 1, str(teams[team].eliminated))
+    for team in teams:
+        if teams[team].conference == "West":
+            counter_row = counter_row + 1
+            ws.write(counter_row, 0, team)
+            ws.write(counter_row, 1, str(teams[team].eliminated))
+    for team in teams:
+        if teams[team].conference == "East":
+            counter_row = counter_row + 1
+            ws.write(counter_row, 0, team)
+            ws.write(counter_row, 1, str(teams[team].eliminated))
     wb.save('nba_dates.xls')
     print "Finished."
 
