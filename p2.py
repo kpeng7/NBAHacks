@@ -2,7 +2,6 @@ from collections import defaultdict
 import random
 from openpyxl import load_workbook
 import copy
-import xlwt
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = defaultdict(list)
