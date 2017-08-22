@@ -350,6 +350,10 @@ def updateSeason(date, (first_team, second_team, score), teams, divisions, confe
             conferences[conference_names].rankTeams()
     return at_least_41_games_played
 
+def writeToSheet(ws, teams):
+    for row in ws.iter_rows(range_string="A2:B31"):
+        row[1].value = teams[row[0].value].eliminated
+
 def main():
     global WESTERN_CONF
     global EASTERN_CONF
@@ -366,7 +370,6 @@ def main():
     at_least_41_games_played = False
 
     for date in sorted(GAME_DATA.keys()):
-
         for game in GAME_DATA[date]:
             at_least_41_games_played = updateSeason(date, game, teams, divisions, conferences, at_least_41_games_played)
         for team in WESTERN_CONF.teams:
@@ -375,24 +378,12 @@ def main():
         for team in EASTERN_CONF.teams:
             if team.eliminated == "Playoffs":
                 team.eliminated = checkElimination(team, date, EASTERN_CONF)
-    #excel sheet for displaying team and calculated dates
-    counter_row = 1
-    wb = xlwt.Workbook()
-    ws = wb.add_sheet('NBA_Clinch_Dates')
-    ws.write(0, 0, "Team")
-    ws.write(0, 1, "Date Eliminated")
-
-    for team in teams:
-        if teams[team].conference == "West":
-            counter_row = counter_row + 1
-            ws.write(counter_row, 0, team)
-            ws.write(counter_row, 1, str(teams[team].eliminated))
-    for team in teams:
-        if teams[team].conference == "East":
-            counter_row = counter_row + 1
-            ws.write(counter_row, 0, team)
-            ws.write(counter_row, 1, str(teams[team].eliminated))
-    wb.save('nba_dates.xls')
+                
+    #writing to Analytics_Attachment.xlsx tab "NBA_Clinch_Dates"
+    ws = wb['NBA_Clinch_Dates']
+    writeToSheet(ws, teams)
+    wb.save('Analytics_Attachment.xlsx')
+    
     print "Finished."
 
 if __name__ == "__main__":
