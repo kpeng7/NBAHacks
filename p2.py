@@ -1,69 +1,13 @@
-import unittest
 from collections import defaultdict
 import random
 from openpyxl import load_workbook
-from collections import defaultdict
 import copy
-import time
-import pdb
 import xlwt
-from datetime import datetime
 
 #dictionary of date : [(winning team, losing team, score)]
 GAME_DATA = defaultdict(list)
 WESTERN_CONF = None
 EASTERN_CONF = None
-
-#once one team plays more than 41 games
-
-class Tests(unittest.TestCase):
-    def testAddGame(self):
-        team1 = Team("name", "division", "conference", ["name2"])
-        team2 = Team("name2", "division", "conference", ["name"])
-        team1.addGame(team2, (100, 50))
-        self.assertEqual(team1.games_won, 1)
-        self.assertEqual(team1.games_played, 1)
-        self.assertEqual(team1.division_games_won, 1)
-        self.assertEqual(team1.division_games_played, 1)
-        self.assertEqual(team1.conference_games_won, 1)
-        self.assertEqual(team1.conference_games_played, 1)
-        self.assertEqual(team1.opponents["name2"], [1, 0])
-        self.assertEqual(team1.points_scored, 100)
-        self.assertEqual(team1.points_allowed, 50)
-
-#           self.rankByOverallWinPercentage(tied_teams), \
-#           self.rankByRecordAgainstAll(tied_teams), \
-#           self.divisionLeader(tied_teams), \
-#           self.rankByDivWonLostPercentage(tied_teams), \
-#           self.rankByConfWonLostPercentage(tied_teams), \
-#           self.rankByPlayoffEligibleInConf(tied_teams, conf), \
-#           self.rankByPlayoffEligibleInConf(tied_teams, opp_conf), \
-#           self.rankByPointDifferential(tied_teams), \
-#           self.randomize(tied_teams)
-    def testRankByOverallWinPercentage(self):
-        team1 = Team("1", "d1", "c1", ["2", "3", "4"])
-        team2 = Team("2", "d1", "c1", ["1", "3", "4"])
-        team3 = Team("3", "d1", "c1", ["1", "2", "4"])
-        team4 = Team("4", "d1", "c1", ["1", "2", "3"])
-        g1 = Group("g1", [team1, team2])
-        g2 = Group("g2", [team1, team3])
-        g3 = Group("g3", [team1, team2, team3])
-        g4 = Group("g4", [team1, team2, team3, team4])
-        team1.games_played = 1
-        team1.games_won = 1
-        team2.games_played = 1
-        team2.games_won = 0
-        self.assertEqual(g1.rankByOverallWinPercentage([team1, team2]),  [[team1], [team2]])
-        team3.games_played = 1
-        team3.games_won = 1
-        self.assertEqual(g2.rankByOverallWinPercentage([team1, team3]), [[team1, team3]])
-        self.assertEqual(g3.rankByOverallWinPercentage([team1, team2, team3]), [[team1, team3], [team2]])
-        self.assertEqual(g4.rankByOverallWinPercentage([team1, team3]), [[team1, team3]])
-        team4.games_played = 100
-        team4.games_won = 30
-        self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team3, team4]), [[team1, team3], [team4], [team2]])
-        self.assertEqual(g4.rankByOverallWinPercentage([team1, team2, team4]), [[team1], [team4], [team2]])
-
 
 class Team():
     name = ""
@@ -152,12 +96,10 @@ class Group():
         for i in range(len(ranked_list)):
             self.rankings[i + 1] = ranked_list[i]
             check[i + 1] = ranked_list[i].name
-#             print i + 1, ranked_list[i].name
             if not self.name == "West" and not self.name == "East":
                 ranked_list[i].division_rank = i + 1
             else:
                 ranked_list[i].conference_rank = i + 1
-#         print self.name, check
 
     def rankByOverallWinPercentage(self, teams):
         out = []
@@ -167,7 +109,6 @@ class Group():
         sorted_keys = sorted(ranked_dict.keys())
         for key in reversed(sorted_keys):
             out.append(ranked_dict[key])
-        #print out
         return out
 
     def divisionLeader(self, teams):
@@ -388,7 +329,6 @@ def generateGameData(games):
 def checkElimination(team, date, conference):
     if team.conference_rank > 8:
         eighth_seed = conference.rankings[8].loseRest()
-#         print "****", eighth_seed.name, eighth_seed.games_won, eighth_seed.games_played
         team_possible = team.winRest()
         if conference == WESTERN_CONF:
             rank = conference.settleTie([eighth_seed, team_possible], conference, EASTERN_CONF)
@@ -422,11 +362,9 @@ def main():
     conferences = generateConference(teams, divisions)
     WESTERN_CONF = conferences["West"]
     EASTERN_CONF = conferences["East"]
-    #pdb.set_trace()
     generateGameData(games)
     at_least_41_games_played = False
 
-    #qpdb.set_trace()
     for date in sorted(GAME_DATA.keys()):
 
         for game in GAME_DATA[date]:
@@ -437,7 +375,6 @@ def main():
         for team in EASTERN_CONF.teams:
             if team.eliminated == "Playoffs":
                 team.eliminated = checkElimination(team, date, EASTERN_CONF)
-    #pdb.set_trace()
     with open("Output.txt", "w") as text_file:
 
         #excel sheet for displaying team and calculated dates
@@ -452,7 +389,6 @@ def main():
         for team in teams:
             if teams[team].conference == "West":
                 counter_row = counter_row + 1
-#                 print team + ":\t" + str(teams[team].eliminated)
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
                 ws.write(counter_row, 0, team)
                 ws.write(counter_row, 1, str(teams[team].eliminated))
@@ -461,7 +397,6 @@ def main():
         for team in teams:
             if teams[team].conference == "East":
                 counter_row = counter_row + 1
-#                 print team + ":\t" + str(teams[team].eliminated)
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
                 ws.write(counter_row, 0, team)
                 ws.write(counter_row, 1, str(teams[team].eliminated))
@@ -469,5 +404,4 @@ def main():
     print "Finished."
 
 if __name__ == "__main__":
-#     unittest.main()
     main()

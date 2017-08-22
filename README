@@ -21,6 +21,8 @@ Includes
 
   p2.py
 
+	Run with command python p2.py. Required packages: 
+	
     Program that generates the elimination dates of the teams given the data
     in Analytics_Attachment.xlsx. The program will automatically extract the
     data from the excel spreadsheet and output the elimination dates to the same
