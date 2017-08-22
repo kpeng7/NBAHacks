@@ -157,7 +157,7 @@ class Group():
                 ranked_list[i].division_rank = i + 1
             else:
                 ranked_list[i].conference_rank = i + 1
-        print self.name, check
+#         print self.name, check
 
     def rankByOverallWinPercentage(self, teams):
         out = []
@@ -388,14 +388,14 @@ def generateGameData(games):
 def checkElimination(team, date, conference):
     if team.conference_rank > 8:
         eighth_seed = conference.rankings[8].loseRest()
-        print "****", eighth_seed.name, eighth_seed.games_won, eighth_seed.games_played
+#         print "****", eighth_seed.name, eighth_seed.games_won, eighth_seed.games_played
         team_possible = team.winRest()
         if conference == WESTERN_CONF:
             rank = conference.settleTie([eighth_seed, team_possible], conference, EASTERN_CONF)
         else:
             rank = conference.settleTie([eighth_seed, team_possible], conference, WESTERN_CONF)
         if rank[0] == eighth_seed:
-            return date
+            return date.strftime("%m/%d/%Y")
     return "Playoffs"
 
 def updateSeason(date, (first_team, second_team, score), teams, divisions, conferences, at_least_41_games_played):
@@ -442,17 +442,16 @@ def main():
         #excel sheet for displaying team and calculated dates
         counter_row = 1
         wb = xlwt.Workbook()
-        ws = wb.add_sheet('A Test Sheet')
-        style0 = xlwt.easyxf('font: name Times New Roman, color-index black, bold on')
-        ws.write(1, 0, "Team", style0)
-        ws.write(1, 1, "Playoffs or Last Date", style0)
+        ws = wb.add_sheet('NBA_Clinch_Dates')
+        ws.write(0, 0, "Team")
+        ws.write(0, 1, "Date Eliminated")
 
         text_file.write("West" + "\n")
 
         for team in teams:
             if teams[team].conference == "West":
                 counter_row = counter_row + 1
-                print team + ":\t" + str(teams[team].eliminated)
+#                 print team + ":\t" + str(teams[team].eliminated)
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
                 ws.write(counter_row, 0, team)
                 ws.write(counter_row, 1, str(teams[team].eliminated))
@@ -461,7 +460,7 @@ def main():
         for team in teams:
             if teams[team].conference == "East":
                 counter_row = counter_row + 1
-                print team + ":\t" + str(teams[team].eliminated)
+#                 print team + ":\t" + str(teams[team].eliminated)
                 text_file.write(team + ":\t" + str(teams[team].eliminated) + "\n")
                 ws.write(counter_row, 0, team)
                 ws.write(counter_row, 1, str(teams[team].eliminated))
