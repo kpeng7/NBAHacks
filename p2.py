@@ -369,7 +369,7 @@ def main():
     at_least_41_games_played = False
 
     for date in sorted(GAME_DATA.keys()):
-        for game in GAME_DATA[date]:
+        for game in GAME_DATA.pop(date, None):
             at_least_41_games_played = updateSeason(date, game, teams, divisions, conferences, at_least_41_games_played)
         for team in WESTERN_CONF.teams:
             if team.eliminated == "Playoffs":
