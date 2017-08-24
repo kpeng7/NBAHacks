@@ -325,17 +325,51 @@ def generateGameData(games):
         game = (row[1].value, row[2].value, [row[3].value, row[4].value])
         GAME_DATA[row[0].value].append(game)
 
-def checkElimination(team, date, conference):
-    if team.conference_rank > 8:
-        eighth_seed = conference.rankings[8].loseRest()
-        team_possible = team.winRest()
-        if conference == WESTERN_CONF:
-            rank = conference.settleTie([eighth_seed, team_possible], conference, EASTERN_CONF)
-        else:
-            rank = conference.settleTie([eighth_seed, team_possible], conference, WESTERN_CONF)
-        if rank[0] == eighth_seed:
-            return date.strftime("%m/%d/%Y")
-    return "Playoffs"
+def checkElimination(at_risk_team, current_date, conference):
+    """
+    copy all teams
+    for all games with team being checked, assume won
+    for all games with 8th seed, assume lost
+    store rest of games in array [(team1, team2, outcome)]
+    systematically iterate through rest of game outcomes
+        for every set of game outcomes create copy of division and conference and rankTeams
+        if team being checked can rank higher than 8th seed return playoffs
+        else return date
+    """
+    at_risk_team = copy.deepcopy(at_risk_team)
+    teams_copy = {}
+    other_games = []
+    for team in WESTERN_CONF.teams:
+        teams_copy[team.name] = copy.deepcopy(team)
+    for team in EASTERN_CONF.teams:
+        teams_copy[team.name] = copy.deepcopy(team)
+    for date in GAME_DATA.keys():
+        for game in GAME_DATA[date]:
+            if at_risk_team.name in game:
+                opponent = game[0]
+                if opponent == at_risk_team.name:
+                    opponent = game[1]
+                opponent = teams_copy[opponent]
+                at_risk_team.addGame(opponent, (100, 0))
+                opponent.addGame(at_risk_team, (0, 100))
+            else:
+                other_games.append(game)
+    for game in other_games:
+        pass
+    
+        
+    """ end of edit """    
+    
+#     if at_risk_team.conference_rank > 8:
+#         eighth_seed = conference.rankings[8].loseRest()
+#         team_possible = at_risk_team.winRest()
+#         if conference == WESTERN_CONF:
+#             rank = conference.settleTie([eighth_seed, team_possible], conference, EASTERN_CONF)
+#         else:
+#             rank = conference.settleTie([eighth_seed, team_possible], conference, WESTERN_CONF)
+#         if rank[0] == eighth_seed:
+#             return current_date.strftime("%m/%d/%Y")
+#     return "Playoffs"
 
 def updateSeason(date, (first_team, second_team, score), teams, divisions, conferences, at_least_41_games_played):
     team1 = teams[first_team]
