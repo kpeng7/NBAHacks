@@ -325,6 +325,34 @@ def generateGameData(games):
         game = (row[1].value, row[2].value, [row[3].value, row[4].value])
         GAME_DATA[row[0].value].append(game)
 
+def canQualify(at_risk_team, teams_dict, games_remaining):
+    if len(games_remaining) == 0:
+        teams_list = []
+        for team_name in teams_dict.keys():
+            teams_list.append(teams_dict[team_name])
+        divisions_dict = generateDivisions(teams_list)
+        division_list = []
+        for division_name in divisions_dict.keys():
+            division_list.append(divisions_dict[division_name])
+        conference_dict = generateConference(teams_list, division_list)
+        conference = conference_dict[at_risk_team.conference]
+        conference.rankTeams()
+        for i in range(1, 8):
+            if conference.rankings[i].name == at_risk_team.name:
+                return True
+        return False
+    else:
+        (team1, team2, outcome) = games_remaining.pop(0)
+        teams_dict_win = copy.deepcopy(teams_dict)
+        teams_dict_lose = copy.deepcopy(teams_dict)
+        teams_dict_win[team1].addGame(teams_dict_win[team2], (1, 0))
+        teams_dict_win[team2].addGame(teams_dict_win[team1], (0, 1))
+        teams_dict_lose[team1].addGame(teams_dict_win[team2], (0, 1))
+        teams_dict_lose[team2].addGame(teams_dict_win[team1], (1, 0))
+        return canQualify(at_risk_team, teams_dict_win, games_remaining) or canQualify(at_risk_team, teams_dict_lose, games_remaining)
+        
+        
+
 def checkElimination(at_risk_team, current_date, conference):
     """
     copy all teams
@@ -354,8 +382,9 @@ def checkElimination(at_risk_team, current_date, conference):
                 opponent.addGame(at_risk_team, (0, 100))
             else:
                 other_games.append(game)
-    for game in other_games:
-        pass
+    if not canQualify(at_risk_team, teams_copy, other_games):
+        return date
+    return "Playoffs"
     
         
     """ end of edit """    
